@@ -4,6 +4,8 @@ let windowIdCounter = 0;
 
 interface AppWindowOptions {
     adjustHeight?: boolean;
+    width?: number;
+    height?: number;
 }
 
 export class AppWindow {
@@ -27,6 +29,9 @@ export class AppWindow {
         this.element = document.createElement('div');
         this.element.className = 'app-window';
         this.element.dataset.windowId = this.id;
+
+        if (options.width) this.element.style.width = `${options.width}px`;
+        if (options.height) this.element.style.height = `${options.height}px`;
 
         this.titleBar = this.createTitleBar(title);
         this.contentArea = this.createContentArea(content);
@@ -53,7 +58,7 @@ export class AppWindow {
         setTimeout(() => {
             const contentHeight = this.contentArea.scrollHeight;
             const titleBarHeight = this.titleBar.offsetHeight;
-            this.element.style.height = `${contentHeight + titleBarHeight + 15}px`; // 15px for padding/margins
+            this.element.style.height = `${contentHeight + titleBarHeight + 20}px`;
         }, 0);
     }
 
@@ -99,31 +104,55 @@ export class AppWindow {
             this.windowManager.bringToFront(this.element);
         });
 
-        this.titleBar.addEventListener('mousedown', (e) => {
-            if (e.target instanceof HTMLButtonElement) return;
-            
-            this.isDragging = true;
-            this.dragStartX = e.clientX - this.element.offsetLeft;
-            this.dragStartY = e.clientY - this.element.offsetTop;
-            this.windowManager.bringToFront(this.element);
-        });
+        this.titleBar.addEventListener('mousedown', (e) => this.onDragStart(e));
+        document.addEventListener('mousemove', (e) => this.onDrag(e));
+        document.addEventListener('mouseup', () => this.onDragEnd());
 
-        document.addEventListener('mousemove', (e) => {
-            if (this.isDragging) {
-                this.element.style.left = `${e.clientX - this.dragStartX}px`;
-                this.element.style.top = `${e.clientY - this.dragStartY}px`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            this.isDragging = false;
-        });
+        this.titleBar.addEventListener('touchstart', (e) => this.onDragStart(e));
+        document.addEventListener('touchmove', (e) => this.onDrag(e));
+        document.addEventListener('touchend', () => this.onDragEnd());
 
         const minimizeButton = this.titleBar.querySelector('.minimize-button');
         minimizeButton?.addEventListener('click', () => this.minimize());
 
         const closeButton = this.titleBar.querySelector('.close-button');
         closeButton?.addEventListener('click', () => this.close());
+    }
+
+    private onDragStart(e: MouseEvent | TouchEvent): void {
+        if (e.target instanceof HTMLButtonElement) return;
+        
+        this.isDragging = true;
+        this.windowManager.bringToFront(this.element);
+
+        if (e instanceof MouseEvent) {
+            this.dragStartX = e.clientX - this.element.offsetLeft;
+            this.dragStartY = e.clientY - this.element.offsetTop;
+        } else {
+            const touch = e.touches[0];
+            this.dragStartX = touch.clientX - this.element.offsetLeft;
+            this.dragStartY = touch.clientY - this.element.offsetTop;
+        }
+    }
+
+    private onDrag(e: MouseEvent | TouchEvent): void {
+        if (this.isDragging) {
+            let clientX = 0, clientY = 0;
+            if (e instanceof MouseEvent) {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            } else {
+                const touch = e.touches[0];
+                clientX = touch.clientX;
+                clientY = touch.clientY;
+            }
+            this.element.style.left = `${clientX - this.dragStartX}px`;
+            this.element.style.top = `${clientY - this.dragStartY}px`;
+        }
+    }
+
+    private onDragEnd(): void {
+        this.isDragging = false;
     }
 
     public minimize(): void {
@@ -152,5 +181,10 @@ export class AppWindow {
     public close(): void {
         this.windowManager.unregister(this);
         this.element.remove();
+    }
+
+    public show(): void {
+        this.element.style.display = 'flex';
+        this.windowManager.bringToFront(this.element);
     }
 }

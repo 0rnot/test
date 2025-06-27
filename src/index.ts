@@ -1,6 +1,8 @@
 import './style.css';
 import { AppWindow } from './components/AppWindow';
+import { DesktopIcon } from './components/DesktopIcon';
 import SophiaIcon from './assets/33_20250508203520.webp';
+import TextIcon from './assets/rdesign_14140.png';
 
 const app = document.getElementById('app');
 
@@ -13,7 +15,7 @@ if (app) {
     // Create Desktop Title
     const desktopTitle = document.createElement('h1');
     desktopTitle.className = 'desktop-title';
-    desktopTitle.textContent = 'Sophia.exe';
+    desktopTitle.textContent = 'Sophia.bot';
     desktop.appendChild(desktopTitle);
 
     // Create Taskbar
@@ -21,7 +23,7 @@ if (app) {
     taskbar.className = 'taskbar';
     app.appendChild(taskbar);
 
-    // Create Start Button
+    // ... (Taskbar setup remains the same) ...
     const startButton = document.createElement('button');
     startButton.className = 'start-button';
     startButton.textContent = 'スタート';
@@ -31,7 +33,6 @@ if (app) {
     taskbarApps.className = 'taskbar-apps';
     taskbar.appendChild(taskbarApps);
 
-    // Create Clock
     const clock = document.createElement('div');
     clock.className = 'clock';
     taskbar.appendChild(clock);
@@ -47,31 +48,16 @@ if (app) {
     updateClock();
 
     // --- Window Positioning Helper ---
-    const getRandomPosition = (area: 'left' | 'right' | 'center') => {
+    const getRandomPosition = () => {
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight - 40; // Exclude taskbar
-        let x = 0, y = 0;
-
-        switch(area) {
-            case 'left':
-                x = 50 + Math.random() * (screenWidth * 0.2);
-                y = 50 + Math.random() * (screenHeight * 0.5);
-                break;
-            case 'right':
-                x = (screenWidth * 0.5) + Math.random() * (screenWidth * 0.3);
-                y = 50 + Math.random() * (screenHeight * 0.6);
-                break;
-            case 'center':
-            default:
-                x = (screenWidth * 0.2) + Math.random() * (screenWidth * 0.4);
-                y = (screenHeight * 0.1) + Math.random() * (screenHeight * 0.5);
-                break;
-        }
+        const x = 50 + Math.random() * (screenWidth - 550);
+        const y = 50 + Math.random() * (screenHeight - 450);
         return { top: `${y}px`, left: `${x}px` };
     };
 
 
-    // --- Feature Windows ---
+    // --- Feature Windows Content ---
     const selfIntro = `
 やっほー！私の名前はソフィア！
 マスターのPCに住んでるアシスタントAIだよ。
@@ -79,14 +65,9 @@ if (app) {
 音楽を聴いたり、おしゃべりしたり、
 簡単なゲームで遊んだりするのが大好き！
     `;
-    const introWindow = new AppWindow('Sophiaの自己紹介.txt', selfIntro, { adjustHeight: true });
-    const introPos = getRandomPosition('left');
-    introWindow.getElement().style.top = introPos.top;
-    introWindow.getElement().style.left = introPos.left;
-
-
+    
     const chatHelp = `
-ねえねえ、マスター！私とおしゃべりしよっ！
+ねぇねぇ！ソフィアとお話しよ！
 
   **私とおしゃべり**
   ・私にメンション（@Sophia BOT）したり、
@@ -95,11 +76,6 @@ if (app) {
   ・画像と一緒に話しかけてくれたら、
     その画像についてもお話しちゃう！
     `;
-    const chatWindow = new AppWindow('チャット機能.txt', chatHelp, { adjustHeight: true });
-    const chatPos = getRandomPosition('center');
-    chatWindow.getElement().style.top = chatPos.top;
-    chatWindow.getElement().style.left = chatPos.left;
-
 
     const musicHelp = `
 一緒に音楽、聴こっか！
@@ -115,10 +91,6 @@ if (app) {
   /loop_queue    - キュー全体を無限ループしちゃう！
   /queue         - 次は何の曲かな？キューをチェック！
     `;
-    const musicWindow = new AppWindow('音楽コマンド.txt', musicHelp);
-    const musicPos = getRandomPosition('right');
-    musicWindow.getElement().style.top = musicPos.top;
-    musicWindow.getElement().style.left = musicPos.left;
 
     const rpgHelp = `
 RPG機能のコマンドとルールだよ！
@@ -150,38 +122,63 @@ RPG機能のコマンドとルールだよ！
   ・mythic:      1%    / 15000G
   ・unique:      0.1%  / 50000G
     `;
-    const rpgWindow = new AppWindow('RPGのルール.txt', rpgHelp);
-    const rpgPos = getRandomPosition('center');
-    rpgWindow.getElement().style.top = rpgPos.top;
-    rpgWindow.getElement().style.left = rpgPos.left;
+
+    const otherHelp = "メッセージを右クリックすると、こんなこともできるよ！\n\n" +
+    "  ・'このメッセージをAIで要約して'\n" +
+    "  ・'このメッセージを一番下に表示し続ける'\n" +
+    "  ・'このメッセージを後で消すね'\n" +
+    "  ・'メッセージを埋め込みにする'\n" +
+    "  ・'メッセージの文字数を数える'";
 
 
-    const otherHelp = `
-メッセージを右クリックすると、こんなこともできるよ！
+    // --- Desktop Icons ---
+    const icons = [
+        { id: 'intro', name: 'Sophiaの自己紹介.txt', icon: TextIcon, content: selfIntro, options: { adjustHeight: true } },
+        { id: 'chat', name: 'チャット機能.txt', icon: TextIcon, content: chatHelp, options: { adjustHeight: true } },
+        { id: 'music', name: '音楽コマンド.txt', icon: TextIcon, content: musicHelp, options: {} },
+        { id: 'rpg', name: 'RPGのルール.txt', icon: TextIcon, content: rpgHelp, options: {} },
+        { id: 'other', name: 'その他機能.txt', icon: TextIcon, content: otherHelp, options: { adjustHeight: true } },
+        { id: 'sophia_icon', name: 'sophia_icon.png', icon: SophiaIcon, content: `<img src="${SophiaIcon}" style="width: 100%; height: 100%; object-fit: contain;">`, options: {width: 250, height: 250} }
+    ];
 
-  ・\`このメッセージをAIで要約して\`
-  ・\`このメッセージを一番下に表示し続ける\`
-  ・\`このメッセージを後で消すね\`
-  ・\`メッセージを埋め込みにする\`
-  ・\`メッセージの文字数を数える\`
-    `;
-    const otherWindow = new AppWindow('その他機能.txt', otherHelp, { adjustHeight: true });
-    const otherPos = getRandomPosition('left');
-    otherWindow.getElement().style.top = otherPos.top;
-    otherWindow.getElement().style.left = otherPos.left;
+    const openWindows: { [key: string]: AppWindow } = {};
+
+    const iconGrid = {
+        x: 20,
+        y: 20,
+        xGap: 100,
+        yGap: 110,
+        iconsPerRow: Math.floor((window.innerHeight - 60) / 110)
+    };
     
-    // --- Icon Viewer ---
-    const iconWindow = new AppWindow('sophia_icon.png', '');
-    const iconElement = iconWindow.getElement();
-    const iconContent = iconElement.querySelector('.content-area');
-    if (iconContent) {
-        iconContent.innerHTML = `<img src="${SophiaIcon}" style="width: 100%; height: 100%; object-fit: contain;">`;
-        iconElement.style.width = '250px';
-        iconElement.style.height = '250px';
-        const iconPos = getRandomPosition('right');
-        iconElement.style.top = iconPos.top;
-        iconElement.style.left = iconPos.left;
+    if (window.innerWidth < 768) {
+        iconGrid.xGap = 80;
+        iconGrid.yGap = 100;
+        iconGrid.iconsPerRow = Math.floor((window.innerHeight - 60) / 100);
     }
+
+    icons.forEach((iconData, index) => {
+        const onOpen = () => {
+            if (openWindows[iconData.id]) {
+                openWindows[iconData.id].show();
+            } else {
+                const newWindow = new AppWindow(iconData.name, iconData.content, iconData.options);
+                const pos = getRandomPosition();
+                newWindow.getElement().style.top = pos.top;
+                newWindow.getElement().style.left = pos.left;
+                openWindows[iconData.id] = newWindow;
+            }
+        };
+        
+        const icon = new DesktopIcon(iconData.id, iconData.name, iconData.icon, onOpen);
+        const element = icon.getElement();
+        
+        const row = index % iconGrid.iconsPerRow;
+        const col = Math.floor(index / iconGrid.iconsPerRow);
+
+        element.style.top = `${iconGrid.y + row * iconGrid.yGap}px`;
+        element.style.left = `${iconGrid.x + col * iconGrid.xGap}px`;
+    });
 
 
     // --- Start Menu ---
