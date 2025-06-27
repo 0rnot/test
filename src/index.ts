@@ -36,14 +36,21 @@ if (app) {
     // Create Access Counter
     const accessCounter = document.createElement('div');
     accessCounter.className = 'access-counter';
-    let count = 12345; // Initial fake count
-    accessCounter.textContent = `ACCESS: ${count.toLocaleString()}`;
+    accessCounter.textContent = 'ACCESS: ...';
     taskbar.appendChild(accessCounter);
 
-    setInterval(() => {
-        count += Math.floor(Math.random() * 5) + 1;
-        accessCounter.textContent = `ACCESS: ${count.toLocaleString()}`;
-    }, 3000);
+    const counterNamespace = '0rnot.github.io';
+    const counterKey = 'sophia-exe-test';
+
+    fetch(`https://api.countapi.xyz/hit/${counterNamespace}/${counterKey}`)
+        .then(res => res.json())
+        .then(data => {
+            accessCounter.textContent = `ACCESS: ${data.value.toLocaleString()}`;
+        })
+        .catch(err => {
+            console.error('Could not fetch access count.', err);
+            accessCounter.textContent = 'ACCESS: ???';
+        });
 
     // Create Clock
     const clock = document.createElement('div');
@@ -205,6 +212,17 @@ RPG機能のコマンドとルールだよ！
     const startMenu = document.createElement('div');
     startMenu.className = 'start-menu';
     app.appendChild(startMenu);
+
+    const shareButton = document.createElement('button');
+    shareButton.className = 'start-menu-item';
+    shareButton.textContent = 'このサイトをシェア';
+    shareButton.addEventListener('click', () => {
+        navigator.clipboard.writeText('https://0rnot.github.io/test')
+            .then(() => alert('クリップボードにURLをコピーしたよ！'))
+            .catch(() => alert('コピーに失敗しちゃった…ごめんね！'));
+        startMenu.classList.remove('show');
+    });
+    startMenu.appendChild(shareButton);
 
     const addBotButton = document.createElement('button');
     addBotButton.className = 'start-menu-item';

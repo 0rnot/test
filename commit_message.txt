@@ -1,1 +1,1 @@
-Final UI adjustments and bug fixes
+Implement real access counter and share button
