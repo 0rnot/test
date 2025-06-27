@@ -15,7 +15,7 @@ if (app) {
     // Create Desktop Title
     const desktopTitle = document.createElement('h1');
     desktopTitle.className = 'desktop-title';
-    desktopTitle.textContent = 'Sophia.bot';
+    desktopTitle.textContent = 'Sophia.exe';
     desktop.appendChild(desktopTitle);
 
     // Create Taskbar
@@ -33,6 +33,19 @@ if (app) {
     taskbarApps.className = 'taskbar-apps';
     taskbar.appendChild(taskbarApps);
 
+    // Create Access Counter
+    const accessCounter = document.createElement('div');
+    accessCounter.className = 'access-counter';
+    let count = 12345; // Initial fake count
+    accessCounter.textContent = `ACCESS: ${count.toLocaleString()}`;
+    taskbar.appendChild(accessCounter);
+
+    setInterval(() => {
+        count += Math.floor(Math.random() * 5) + 1;
+        accessCounter.textContent = `ACCESS: ${count.toLocaleString()}`;
+    }, 3000);
+
+    // Create Clock
     const clock = document.createElement('div');
     clock.className = 'clock';
     taskbar.appendChild(clock);
@@ -141,7 +154,7 @@ RPG機能のコマンドとルールだよ！
         { id: 'sophia_icon', name: 'sophia_icon.png', icon: SophiaIcon, content: `<img src="${SophiaIcon}" style="width: 100%; height: 100%; object-fit: contain;">`, options: {width: 250, height: 250} }
     ];
 
-    const openWindows: { [key: string]: AppWindow } = {};
+    const openWindows: { [key: string]: AppWindow | null } = {};
 
     const iconGrid = {
         x: 20,
@@ -160,12 +173,19 @@ RPG機能のコマンドとルールだよ！
     icons.forEach((iconData, index) => {
         const onOpen = () => {
             if (openWindows[iconData.id]) {
-                openWindows[iconData.id].show();
+                openWindows[iconData.id]?.show();
             } else {
                 const newWindow = new AppWindow(iconData.name, iconData.content, iconData.options);
                 const pos = getRandomPosition();
                 newWindow.getElement().style.top = pos.top;
                 newWindow.getElement().style.left = pos.left;
+                
+                // When window is closed, remove it from our tracking object
+                const originalClose = newWindow.close.bind(newWindow);
+                newWindow.close = () => {
+                    originalClose();
+                    openWindows[iconData.id] = null;
+                }
                 openWindows[iconData.id] = newWindow;
             }
         };

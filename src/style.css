@@ -149,8 +149,16 @@ html, body {
     margin: 5px 0;
 }
 
-.clock {
+.access-counter {
     margin-left: auto;
+    padding: 5px 10px;
+    border: 1px solid #FFDDEE;
+    background-color: #FFF0F5;
+    color: #333;
+    margin-right: 10px; /* Add margin to separate from clock */
+}
+
+.clock {
     padding: 5px 10px;
     border: 1px solid #FFDDEE;
     background-color: #FFF0F5;
